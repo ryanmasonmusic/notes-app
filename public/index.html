@@ -1,101 +1,177 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Notes App</title>
-  <style>
-    body { font-family: sans-serif; max-width: 700px; margin: 40px auto; padding: 0 20px; }
-    form { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
-    input, textarea, select, button { padding: 8px; font-size: 14px; }
-    .note-card { border: 1px solid #ccc; border-radius: 8px; padding: 12px; margin-bottom: 12px; }
-    .note-card h3 { margin: 0 0 6px 0; }
-    .note-meta { font-size: 12px; color: #666; margin-bottom: 8px; }
-    .note-actions button { margin-right: 6px; }
-    #controls { display: flex; gap: 8px; margin-bottom: 16px; }
-  </style>
-</head>
-<body>
-  <h1>My Notes</h1>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Notes App</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        max-width: 700px;
+        margin: 40px auto;
+        padding: 0 20px;
+      }
+      form {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 24px;
+      }
+      input,
+      textarea,
+      select,
+      button {
+        padding: 8px;
+        font-size: 14px;
+      }
+      .note-card {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 12px;
+      }
+      .note-card h3 {
+        margin: 0 0 6px 0;
+      }
+      .note-meta {
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 8px;
+      }
+      .note-actions button {
+        margin-right: 6px;
+      }
+      #controls {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>My Notes</h1>
 
-  <!-- Form to add a new note -->
-  <form id="note-form">
-    <input type="text" id="title-input" placeholder="Title" required />
-    <textarea id="body-input" placeholder="Body"></textarea>
-    <select id="category-input">
-      <option value="general">General</option>
-      <option value="work">Work</option>
-      <option value="personal">Personal</option>
-    </select>
-    <button type="submit">Add Note</button>
-  </form>
+    <!-- Form to add a new note -->
+    <form id="note-form">
+      <input type="text" id="title-input" placeholder="Title" required />
+      <textarea id="body-input" placeholder="Body"></textarea>
+      <select id="category-input">
+        <option value="general">General</option>
+        <option value="work">Work</option>
+        <option value="personal">Personal</option>
+      </select>
+      <button type="submit">Add Note</button>
+    </form>
 
-  <!-- Search / filter controls -->
-  <div id="controls">
-    <input type="text" id="search-input" placeholder="Search notes..." />
-    <select id="category-filter">
-      <option value="">All categories</option>
-      <option value="general">General</option>
-      <option value="work">Work</option>
-      <option value="personal">Personal</option>
-    </select>
-  </div>
+    <!-- Search / filter controls -->
+    <div id="controls">
+      <input type="text" id="search-input" placeholder="Search notes..." />
+      <select id="category-filter">
+        <option value="">All categories</option>
+        <option value="general">General</option>
+        <option value="work">Work</option>
+        <option value="personal">Personal</option>
+      </select>
+    </div>
 
-  <div id="notes-container"></div>
+    <div id="notes-container"></div>
 
-  <script>
-    const noteForm = document.getElementById("note-form");
-    const titleInput = document.getElementById("title-input");
-    const bodyInput = document.getElementById("body-input");
-    const categoryInput = document.getElementById("category-input");
-    const searchInput = document.getElementById("search-input");
-    const categoryFilter = document.getElementById("category-filter");
-    const notesContainer = document.getElementById("notes-container");
+    <script>
+      const noteForm = document.getElementById("note-form");
+      const titleInput = document.getElementById("title-input");
+      const bodyInput = document.getElementById("body-input");
+      const categoryInput = document.getElementById("category-input");
+      const searchInput = document.getElementById("search-input");
+      const categoryFilter = document.getElementById("category-filter");
+      const notesContainer = document.getElementById("notes-container");
 
-    // --- LOAD NOTES ---
-    // TODO: build a query string using URLSearchParams from searchInput.value
-    //   and categoryFilter.value, then fetch("/notes?" + params)
-    // TODO: convert the response to JSON, then call renderNotes(notes)
-    async function loadNotes() {
-      // your code here
-    }
+      // --- LOAD NOTES ---
+      // TODO: build a query string using URLSearchParams from searchInput.value
+      //   and categoryFilter.value, then fetch("/notes?" + params)
+      // TODO: convert the response to JSON, then call renderNotes(notes)
+      async function loadNotes() {
+        // your code here
+        const params = new URLSearchParams();
+        if (searchInput.value) params.append("search", searchInput.value);
+        if (categoryFilter.value)
+          params.append("category", categoryFilter.value);
+        const response = await fetch("/notes?" + params);
+        const notes = await response.json();
+        renderNotes(notes);
+      }
 
-    // --- RENDER NOTES ---
-    // TODO: clear notesContainer, then for each note, build a card (a <div>)
-    //   showing title, body, category, and Edit/Delete buttons.
-    // HINT: use document.createElement, set textContent, then appendChild
-    //   to notesContainer. Wire the Delete button's onclick to deleteNote(note._id)
-    //   (MongoDB uses `_id`, not `id`!) and the Edit button's onclick to startEdit(note).
-    function renderNotes(notes) {
-      // your code here
-    }
+      // --- RENDER NOTES ---
+      // TODO: clear notesContainer, then for each note, build a card (a <div>)
+      //   showing title, body, category, and Edit/Delete buttons.
+      function renderNotes(notes) {
+        notesContainer.innerHTML = "";
 
-    // --- ADD NOTE (form submit) ---
-    // TODO: prevent default form submission, POST to /notes with a JSON body
-    //   of { title, body, category } from the input values, then clear the
-    //   form and call loadNotes() again to refresh the list.
-    noteForm.addEventListener("submit", async (e) => {
-      // your code here
-    });
+        notes.forEach((note) => {
+          const card = document.createElement("div");
+          card.className = "note-card";
 
-    // --- DELETE NOTE ---
-    // TODO: send a DELETE request to /notes/{id}, then call loadNotes()
-    async function deleteNote(id) {
-      // your code here
-    }
+          const title = document.createElement("h3");
+          title.textContent = note.title;
+          card.appendChild(title);
 
-    // --- EDIT NOTE (stretch goal — do this after the others work) ---
-    // TODO: replace a note card with an inline form pre-filled with its
-    //   current values. On save, PUT to /notes/{id} with the new values.
-    function startEdit(note) {
-      // your code here
-    }
+          const body = document.createElement("p");
+          body.textContent = note.body;
+          card.appendChild(body);
 
-    // Reload notes whenever search or category filter changes
-    searchInput.addEventListener("input", loadNotes);
-    categoryFilter.addEventListener("change", loadNotes);
+          const category = document.createElement("p");
+          category.textContent = note.category;
+          category.className = "note-meta";
+          card.appendChild(category);
 
-    // Initial load
-    loadNotes();
-  </script>
-</body>
+          const editButton = document.createElement("button");
+          editButton.textContent = "Edit Note";
+          editButton.onclick = () => startEdit(note);
+          card.appendChild(editButton);
+
+          const deleteButton = document.createElement("button");
+          deleteButton.textContent = "Delete Note";
+          deleteButton.onclick = () => deleteNote(note._id);
+          card.appendChild(deleteButton);
+
+          notesContainer.appendChild(card);
+        });
+      }
+
+      // --- ADD NOTE (form submit) ---
+      // TODO: prevent default form submission, POST to /notes with a JSON body
+      //   of { title, body, category } from the input values, then clear the
+      //   form and call loadNotes() again to refresh the list.
+      noteForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        await fetch("/notes", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({title: titleInput.value, body: bodyInput.value, category: categoryInput.value})
+        });
+        titleInput.value = "";
+        bodyInput.value = "";
+        loadNotes();
+      });
+
+      // --- DELETE NOTE ---
+      // TODO: send a DELETE request to /notes/{id}, then call loadNotes()
+      async function deleteNote(id) {
+        await fetch("/notes/" + id, {method: "DELETE"});
+        loadNotes();
+      }
+
+      // --- EDIT NOTE (stretch goal — do this after the others work) ---
+      // TODO: replace a note card with an inline form pre-filled with its
+      //   current values. On save, PUT to /notes/{id} with the new values.
+      function startEdit(note) {
+
+      }
+
+      // Reload notes whenever search or category filter changes
+      searchInput.addEventListener("input", loadNotes);
+      categoryFilter.addEventListener("change", loadNotes);
+
+      // Initial load
+      loadNotes();
+    </script>
+  </body>
 </html>
