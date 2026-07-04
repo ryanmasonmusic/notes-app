@@ -12,7 +12,8 @@ app.use(express.json());
 app.use(express.static("public"));
 
 // --- DATABASE CONNECTION ---
-mongoose.connect(process.env.MONGO_URI)
+mongoose
+  .connect(process.env.MONGO_URI)
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
@@ -28,42 +29,37 @@ const noteSchema = new mongoose.Schema({
 
 const Note = mongoose.model("Note", noteSchema);
 
-
 // --- ROUTES ---
 
 // GET /notes — return all notes
-// Supports optional query params: ?search=keyword and ?category=work
 app.get("/notes", async (req, res) => {
   const { search, category } = req.query;
-
-  // TODO: build a `filter` object based on search/category, then use
-  //   Note.find(filter) to query MongoDB.
-  // HINT for search (case-insensitive, matches title OR body):
-  //   filter.$or = [
-  //     { title: { $regex: search, $options: "i" } },
-  //     { body: { $regex: search, $options: "i" } },
-  //   ];
-  // HINT for category: filter.category = category;
-  // Don't forget: this route is `async`, so use `await Note.find(filter)`
-
-  res.json([]); // replace this with your actual result
+  const filter = {};
+  // TODO: build a `filter` object based on search/category
+  if (search) {
+    filter.$or = [
+      { title: { $regex: search, $options: "i" } },
+      { body: { $regex: search, $options: "i" } },
+    ];
+  }
+  if (category) {
+    filter.category = category;
+  }
+  const notes = await Note.find(filter);
+  res.json(notes);
 });
 
-
 // POST /notes — create a new note
-// Expects body: { "title": "...", "body": "...", "category": "..." }
 app.post("/notes", async (req, res) => {
   const { title, body, category } = req.body;
 
   // TODO: validate that title is not empty — return res.status(400).json({ error: "..." }) if missing
-
-  // TODO: create a new note using `Note.create({ title, body, category })`
-  //   (this is a Mongoose shortcut that builds AND saves in one step)
-  //   Store the result, then res.status(201).json(theNewNote)
-
-  res.status(201).json({ message: "TODO: return the created note" });
+  if (!title) {
+    return res.status(400).json({ error: "Title is required" });
+  }
+  const newNote = await Note.create({ title, body, category });
+  res.status(201).json(newNote);
 });
-
 
 // PUT /notes/:id — update an existing note's title, body, and/or category
 app.put("/notes/:id", async (req, res) => {
@@ -71,23 +67,29 @@ app.put("/notes/:id", async (req, res) => {
   const { title, body, category } = req.body;
 
   // TODO: use Note.findByIdAndUpdate(id, { title, body, category }, { new: true })
-  //   `{ new: true }` makes it return the UPDATED document, not the old one
   // TODO: if no note was found, return res.status(404).json({ error: "Note not found" })
-
-  res.json({ message: "TODO: return the updated note" });
+  const updatedNote = await Note.findByIdAndUpdate(
+    id,
+    { title, body, category },
+    { new: true },
+  );
+  if (!updatedNote) {
+    return res.status(404).json({ error: "Note not found" });
+  }
+  res.json(updatedNote);
 });
-
 
 // DELETE /notes/:id — delete a note
 app.delete("/notes/:id", async (req, res) => {
   const { id } = req.params;
-
   // TODO: use Note.findByIdAndDelete(id)
   // TODO: if no note was found, return res.status(404).json({ error: "Note not found" })
-
-  res.json({ message: "TODO: confirm deletion" });
+  const deleteId = await Note.findByIdAndDelete(id);
+  if (!deleteId) {
+    return res.status(404).json({ error: "Note not found" });
+  }
+  res.json({ message: "Note deleted successfully!" });
 });
-
 
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
